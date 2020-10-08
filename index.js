@@ -83,19 +83,22 @@ const resetKeywordsUl = () => {
     document.querySelector(".inputKeywordsHandle ul").innerHTML = '';
 }
 
-// TODO : Modify this function to pass the keyword in lowercase and remove special characters
+//Modify this function to pass the keyword in lowercase and remove special characters
 const cleanedKeyword = (keyword) => {
-    let cleanedKeyword = keyword;
-
+    let cleanedKeyword = keyword.replace(/[^\w\s]/gi, '').toLowerCase();
+    
     return cleanedKeyword;
 }
 
 // We reload the articles depends of the currentKeywords
-// TODO : Modify this function to return the articles containing at leat one of the selected keywords.
+// Modify this function to return the articles containing at leat one of the selected keywords.
 const reloadArticles = () => {
     document.querySelector(".articlesList").innerHTML = ""
-    let articlesToShow = data.articles;
-
+    
+    articlesToShow = data.articles.filter((article) => {
+        return currentKeywords.some((currentKeyword) => {return article.tags.includes(currentKeyword)})
+    })
+    
     articlesToShow.forEach(article => {
         document.querySelector(".articlesList").innerHTML += `
             <article>
@@ -105,21 +108,41 @@ const reloadArticles = () => {
     });
 }
 
-// TODO : Modify this function to show the keyword containging a part of the word inserted into the form (starting autocompletion at 3 letters)
-// TODO : We also show all the words from the same category than this word.
-// TODO : We show in first the keyword containing a part of the word inserted.
+// Modify this function to show the keyword containging a part of the word inserted into the form (starting autocompletion at 3 letters)
+// We also show all the words from the same category than this word.
+// We show in first the keyword containing a part of the word inserted.
 // TODO : If a keyword is already in the liste of presents hashtags (checkbox list), we don't show it
 const showKeywordsList = (value) => {
     // Starting at 3 letters inserted in the forme, we start to do something
     if (value.length >= 3) {
         const keyWordUl = document.querySelector(".inputKeywordsHandle ul");
         resetKeywordsUl();
+        console.log("Showing keywords list") 
+        let correspondingKeyword
+        allKeywords.forEach(keyword => {
+            if(cleanedKeyword(keyword).startsWith(value) && !currentKeywords.includes(cleanedKeyword(keyword))){
+                let correspondingKeyword = keyword
+                console.log(`Returning ${correspondingKeyword}`)
         
-        // This will allow you to add a new element in the list under the text input
-        // On clic, we add the keyword
-        // keyWordUl.innerHTML += `
-        //    <li onclick="addNewKeyword('${keyword}', '${cleanedKeyword(keyword)}')">${keyword}</li>
-        // `;
+                let correspondingKeywordCategory
+                keywordsCategories.forEach(keywordsCategory => {
+                    if(keywordsCategory.keywords.includes(correspondingKeyword)){
+                        correspondingKeywordCategory = keywordsCategory.keywords.filter(keyword => {
+                            return keyword != correspondingKeyword && !currentKeywords.includes(keyword)
+                        })
+                    }
+                })
+                correspondingKeywordCategory.unshift(correspondingKeyword)
+                // This will allow you to add a new element in the list under the text input
+                // On clic, we add the keyword
+                correspondingKeywordCategory.forEach(keyword => {
+                    keyWordUl.innerHTML += `
+                       <li onclick="addNewKeyword('${keyword}', '${cleanedKeyword(keyword)}')">${keyword}</li>
+                    `;
+                })
+            }
+        })
+
     }
 }
 
